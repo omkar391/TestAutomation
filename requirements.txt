@@ -1,0 +1,16 @@
+# Core Test Framework & Automation Engine
+playwright==1.49.1
+pytest==8.3.4
+pytest-playwright==0.6.2
+pytest-xdist==3.6.1
+pytest-rerunfailures==14.0
+pytest-html==4.1.1
+allure-pytest==2.13.5
+
+# Configuration & Data Validation
+pydantic==2.10.4
+pydantic-settings==2.7.0
+python-dotenv==1.0.1
+
+# Observability & Logging
+loguru==0.7.3

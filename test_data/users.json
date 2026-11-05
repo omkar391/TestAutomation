@@ -1,0 +1,32 @@
+{
+  "valid_user": {
+    "email": "automation_enterprise_qa@gmail.com",
+    "password": "Password123!",
+    "username": "EnterpriseQA",
+    "is_valid": true,
+    "expected_error": null
+  },
+  "invalid_users": [
+    {
+      "email": "nonexistent_qa_user_9999@test.com",
+      "password": "WrongPassword123!",
+      "username": null,
+      "is_valid": false,
+      "expected_error": "Your email or password is incorrect!"
+    },
+    {
+      "email": "automation_enterprise_qa@gmail.com",
+      "password": "InvalidPasswordXYZ",
+      "username": null,
+      "is_valid": false,
+      "expected_error": "Your email or password is incorrect!"
+    }
+  ],
+  "existing_user_signup": {
+    "email": "automation_enterprise_qa@gmail.com",
+    "password": "Password123!",
+    "username": "EnterpriseQA",
+    "is_valid": false,
+    "expected_error": "Email Address already exist!"
+  }
+}

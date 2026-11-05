@@ -1,0 +1,100 @@
+name: End-to-End UI Automation Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      test_marker:
+        description: 'Pytest marker to run (e.g., smoke, regression, auth, products)'
+        required: false
+        default: 'smoke'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  e2e-tests:
+    name: Run E2E Tests (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+
+    env:
+      BASE_URL: https://www.automationexercise.com
+      BROWSER: ${{ matrix.browser }}
+      HEADLESS: true
+      DEFAULT_TIMEOUT: 20000
+      RECORD_TRACE: retain-on-failure
+      RECORD_VIDEO: retain-on-failure
+      SCREENSHOT_ON_FAILURE: true
+      LOG_LEVEL: INFO
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Browsers and OS Dependencies
+        run: |
+          playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Run Pytest Test Suite
+        id: run-tests
+        run: |
+          MARKER_ARG=""
+          if [ -n "${{ github.event.inputs.test_marker }}" ]; then
+            MARKER_ARG="-m ${{ github.event.inputs.test_marker }}"
+          fi
+
+          # Execute tests in parallel with xdist and rerun failed tests
+          pytest $MARKER_ARG -n auto --reruns 1 --reruns-delay 2 \
+            --alluredir=reports/allure-results \
+            --html=reports/report-${{ matrix.browser }}.html \
+            --self-contained-html
+
+      - name: Upload HTML Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report-${{ matrix.browser }}
+          path: reports/report-${{ matrix.browser }}.html
+          retention-days: 14
+
+      - name: Upload Test Diagnostics (Screenshots, Traces, Videos)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics-${{ matrix.browser }}
+          path: |
+            reports/screenshots/
+            reports/traces/
+            reports/videos/
+            logs/
+          retention-days: 14
+
+      - name: Upload Allure Raw Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.browser }}
+          path: reports/allure-results/
+          retention-days: 14
