@@ -16,6 +16,7 @@ class TestAuthentication:
     """Enterprise Test Suite for User Authentication, Logout, and Validation Scenarios."""
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     @pytest.mark.parametrize(
         "valid_user",
         get_test_users().valid_users,
@@ -96,6 +97,7 @@ class TestAuthentication:
         assert not header_nav.is_user_logged_in(), "User should not be logged in after failed authentication."
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_user_logout_flow(
         self,
         login_page: LoginPage,

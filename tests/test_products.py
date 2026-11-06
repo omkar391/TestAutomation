@@ -10,6 +10,7 @@ class TestProductsCatalog:
     """Enterprise Test Suite for Products Catalog, Search, and Cart Interactions."""
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     def test_view_all_products_and_product_details(
         self,
         home_page: HomePage,
@@ -74,6 +75,7 @@ class TestProductsCatalog:
         assert len(matching) > 0, f"Expected matching results containing '{search_keyword}'"
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     @pytest.mark.cart
     def test_add_product_to_cart_and_verify_modal(
         self,

@@ -13,6 +13,9 @@ from pages.home_page import HomePage
 from pages.login_page import LoginPage
 from pages.products_page import ProductsPage
 from pages.contact_us_page import ContactUsPage
+from pages.cart_page import CartPage
+from pages.checkout_page import CheckoutPage
+from pages.payment_page import PaymentPage
 from pages.components.header_nav import HeaderNavComponent
 from test_data.models import TestUsersRepository, get_test_users
 from utils.logger import log
@@ -233,6 +236,24 @@ def products_page(page: Page) -> ProductsPage:
 def contact_us_page(page: Page) -> ContactUsPage:
     """Fixture providing initialized ContactUsPage object."""
     return ContactUsPage(page)
+
+
+@pytest.fixture(scope="function")
+def cart_page(page: Page) -> CartPage:
+    """Fixture providing initialized CartPage object."""
+    return CartPage(page)
+
+
+@pytest.fixture(scope="function")
+def checkout_page(page: Page) -> CheckoutPage:
+    """Fixture providing initialized CheckoutPage object."""
+    return CheckoutPage(page)
+
+
+@pytest.fixture(scope="function")
+def payment_page(page: Page) -> PaymentPage:
+    """Fixture providing initialized PaymentPage object."""
+    return PaymentPage(page)
 
 
 # ---------------------------------------------------------------------------
