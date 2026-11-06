@@ -19,11 +19,11 @@ class Settings(BaseSettings):
         description="Browser engine to run tests against",
     )
     HEADLESS: bool = Field(
-        default=True,
+        default=False,
         description="Run browser in headless or headed mode",
     )
     SLOW_MO: int = Field(
-        default=0,
+        default=300,
         description="Delay in milliseconds between actions for debugging",
     )
     DEFAULT_TIMEOUT: int = Field(

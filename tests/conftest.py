@@ -1,6 +1,8 @@
 import os
 import re
 import base64
+import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Generator
 import pytest
@@ -10,6 +12,7 @@ from config.settings import settings
 from pages.home_page import HomePage
 from pages.login_page import LoginPage
 from pages.products_page import ProductsPage
+from pages.contact_us_page import ContactUsPage
 from pages.components.header_nav import HeaderNavComponent
 from test_data.models import TestUsersRepository, get_test_users
 from utils.logger import log
@@ -32,6 +35,31 @@ for directory in [REPORTS_DIR, SCREENSHOTS_DIR, TRACES_DIR, VIDEOS_DIR]:
 AD_DOMAINS_PATTERN = re.compile(
     r"(googleads|doubleclick|googleadservices|googlesyndication|adservice\.google|adnxs|amazon-adsystem|scorecardresearch)"
 )
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Dynamically assign timestamped filename for pytest-html report to prevent overwriting."""
+    htmlpath = getattr(config.option, "htmlpath", None)
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    reports_dir = Path("reports")
+    reports_dir.mkdir(parents=True, exist_ok=True)
+
+    if not htmlpath or htmlpath == "reports/report.html" or Path(htmlpath).name == "report.html":
+        timestamped_file = str(reports_dir / f"report_{timestamp}.html")
+        config.option.htmlpath = timestamped_file
+        log.info(f"Assigned timestamped HTML report target: {timestamped_file}")
+
+
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
+    """Copy the generated timestamped report to reports/latest_report.html for convenient access."""
+    htmlpath = getattr(session.config.option, "htmlpath", None)
+    if htmlpath and Path(htmlpath).exists():
+        latest_file = Path("reports") / "latest_report.html"
+        try:
+            shutil.copyfile(htmlpath, latest_file)
+            log.info(f"Updated latest report copy at: {latest_file}")
+        except Exception as e:
+            log.debug(f"Failed to copy latest_report: {e}")
 
 
 @pytest.fixture(scope="session")
@@ -67,12 +95,16 @@ def browser(playwright_instance: Playwright, request: pytest.FixtureRequest) -> 
     except Exception:
         pass
 
+    launch_args = ["--disable-dev-shm-usage", "--no-sandbox"]
+    if not headless:
+        launch_args.append("--start-maximized")
+
     browser_type = getattr(playwright_instance, settings.BROWSER)
     log.info(f"Launching {settings.BROWSER} browser (headless={headless}, slow_mo={slow_mo}ms)")
     browser_instance = browser_type.launch(
         headless=headless,
         slow_mo=slow_mo,
-        args=["--disable-dev-shm-usage", "--no-sandbox"],
+        args=launch_args,
     )
     yield browser_instance
     log.info(f"Closing {settings.BROWSER} browser")
@@ -81,16 +113,37 @@ def browser(playwright_instance: Playwright, request: pytest.FixtureRequest) -> 
 
 @pytest.fixture(scope="function")
 def context(browser: Browser, request: pytest.FixtureRequest) -> Generator[BrowserContext, None, None]:
-    """Function-scoped BrowserContext with tracing and viewport settings."""
+    """Function-scoped BrowserContext with tracing and desktop viewport settings."""
     record_video_dir = str(VIDEOS_DIR) if settings.RECORD_VIDEO != "off" else None
     test_name = request.node.name.replace("[", "_").replace("]", "_")
 
-    browser_context = browser.new_context(
-        viewport={"width": settings.VIEWPORT_WIDTH, "height": settings.VIEWPORT_HEIGHT},
-        record_video_dir=record_video_dir,
-        record_video_size={"width": settings.VIEWPORT_WIDTH, "height": settings.VIEWPORT_HEIGHT},
-        ignore_https_errors=True,
-    )
+    is_headed = not settings.HEADLESS
+    try:
+        if request.config.getoption("--headed"):
+            is_headed = True
+    except Exception:
+        pass
+
+    context_kwargs: Dict[str, Any] = {
+        "ignore_https_errors": True,
+    }
+    if is_headed:
+        # Adapt to full maximized desktop window
+        context_kwargs["no_viewport"] = True
+    else:
+        context_kwargs["viewport"] = {
+            "width": settings.VIEWPORT_WIDTH,
+            "height": settings.VIEWPORT_HEIGHT,
+        }
+
+    if record_video_dir:
+        context_kwargs["record_video_dir"] = record_video_dir
+        context_kwargs["record_video_size"] = {
+            "width": settings.VIEWPORT_WIDTH,
+            "height": settings.VIEWPORT_HEIGHT,
+        }
+
+    browser_context = browser.new_context(**context_kwargs)
 
     # Start Playwright tracing for rich post-mortem analysis
     if settings.RECORD_TRACE != "off":
@@ -174,6 +227,12 @@ def header_nav(page: Page) -> HeaderNavComponent:
 def products_page(page: Page) -> ProductsPage:
     """Fixture providing initialized ProductsPage object."""
     return ProductsPage(page)
+
+
+@pytest.fixture(scope="function")
+def contact_us_page(page: Page) -> ContactUsPage:
+    """Fixture providing initialized ContactUsPage object."""
+    return ContactUsPage(page)
 
 
 # ---------------------------------------------------------------------------

@@ -51,7 +51,8 @@ A production-ready, enterprise-grade UI test automation framework built from scr
 │   └── users.json               # Seed test data for authentication and registration
 ├── utils/
 │   ├── __init__.py
-│   └── logger.py                # Structured enterprise action logger (Loguru)
+│   ├── logger.py                # Structured enterprise action logger (Loguru)
+│   └── prompts                  # Prompts for AI assistance (e.g. to build test cases, framework etc.)
 ├── .env.example                 # Template environment variables
 ├── .gitignore                   # Enterprise gitignore for Python & Playwright artifacts
 ├── pytest.ini                   # Pytest configuration, markers, reporting flags
@@ -130,9 +131,17 @@ Configuration is managed via Pydantic in `config/settings.py`. Customize runtime
 pytest -m smoke
 ```
 
-### Run Authentication Tests (Phase 1 Module)
+### Run Authentication and contact us page Tests 
 ```bash
 pytest tests/test_auth.py -v
+
+# Run Contact Us suite in headed mode
+.venv\Scripts\pytest.exe tests/test_contact_us.py -v
+
+
+# Run Authentication suite in headed mode
+.venv\Scripts\pytest.exe tests/test_auth.py -v
+
 ```
 
 ### Run Products & Catalog Tests (Phase 2 Module)
