@@ -152,3 +152,4 @@ class BasePage:
         except Exception as e:
             log.debug(f"Vignette dismissal check finished with: {e}")
         return False
+

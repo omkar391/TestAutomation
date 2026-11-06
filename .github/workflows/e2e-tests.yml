@@ -98,3 +98,4 @@ jobs:
           name: allure-results-${{ matrix.browser }}
           path: reports/allure-results/
           retention-days: 14
+

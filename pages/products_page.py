@@ -120,3 +120,4 @@ class ProductsPage(BasePage):
             "condition": self.get_element_text(self.product_detail_condition, "Detail Condition"),
             "brand": self.get_element_text(self.product_detail_brand, "Detail Brand"),
         }
+

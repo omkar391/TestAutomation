@@ -48,13 +48,30 @@ def playwright_instance() -> Generator[Playwright, None, None]:
 
 
 @pytest.fixture(scope="session")
-def browser(playwright_instance: Playwright) -> Generator[Browser, None, None]:
-    """Session-scoped Browser instance configured from settings."""
+def browser(playwright_instance: Playwright, request: pytest.FixtureRequest) -> Generator[Browser, None, None]:
+    """Session-scoped Browser instance configured from settings or CLI flags."""
+    # CLI --headed overrides settings.HEADLESS
+    headless = settings.HEADLESS
+    try:
+        if request.config.getoption("--headed"):
+            headless = False
+    except Exception:
+        pass
+
+    # CLI --slowmo overrides settings.SLOW_MO
+    slow_mo = settings.SLOW_MO
+    try:
+        cli_slowmo = request.config.getoption("--slowmo")
+        if cli_slowmo is not None:
+            slow_mo = int(cli_slowmo)
+    except Exception:
+        pass
+
     browser_type = getattr(playwright_instance, settings.BROWSER)
-    log.info(f"Launching {settings.BROWSER} browser (headless={settings.HEADLESS})")
+    log.info(f"Launching {settings.BROWSER} browser (headless={headless}, slow_mo={slow_mo}ms)")
     browser_instance = browser_type.launch(
-        headless=settings.HEADLESS,
-        slow_mo=settings.SLOW_MO,
+        headless=headless,
+        slow_mo=slow_mo,
         args=["--disable-dev-shm-usage", "--no-sandbox"],
     )
     yield browser_instance

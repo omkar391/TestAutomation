@@ -34,3 +34,4 @@ class HomePage(BasePage):
     def get_features_heading_text(self) -> str:
         """Retrieve features items section heading."""
         return self.get_element_text(self.features_items_heading, "Features Items Heading")
+

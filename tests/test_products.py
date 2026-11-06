@@ -95,3 +95,4 @@ class TestProductsCatalog:
         # 4. Dismiss modal by clicking 'Continue Shopping'
         products_page.click_continue_shopping()
         assert not products_page.is_cart_modal_displayed(), "Cart modal should be dismissed."
+

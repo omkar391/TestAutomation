@@ -84,6 +84,8 @@ A production-ready, enterprise-grade UI test automation framework built from scr
    # On Windows (PowerShell):
    python -m venv .venv
    .venv\Scripts\Activate.ps1
+
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
    ```
 
 3. **Install dependencies:**
@@ -169,6 +171,7 @@ A self-contained HTML report with embedded failure screenshots is automatically 
 # Report path:
 reports/report.html
 ```
+![alt text](image.png)
 
 ### 2. Allure Report
 Allure test results are recorded to `reports/allure-results`. To view the interactive dashboard:
@@ -192,3 +195,4 @@ The framework includes a production-grade CI workflow (`.github/workflows/e2e-te
 - **Automated Caching**: Caches pip dependencies and Playwright browser binaries for fast execution times.
 - **Artifact Upload**: Retains HTML reports, failure screenshots, video recordings, and trace archives for 14 days on every pull request and push to `main`.
 - **Manual Dispatch**: Supports running ad-hoc suites via GitHub Actions UI with custom pytest markers (`smoke`, `regression`, `auth`, `products`).
+

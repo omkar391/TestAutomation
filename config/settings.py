@@ -71,3 +71,4 @@ def get_settings() -> Settings:
 
 # Export standard singleton
 settings = get_settings()
+

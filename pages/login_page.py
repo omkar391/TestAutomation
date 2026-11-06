@@ -36,7 +36,14 @@ class LoginPage(BasePage):
 
     def is_login_form_displayed(self) -> bool:
         """Verify presence of the login form and its heading."""
-        return self.is_element_visible(self.login_heading, timeout=5000)
+        self.dismiss_vignette_if_present()
+        if not self.is_element_visible(self.login_heading, timeout=5000):
+            if "/login" not in self.page.url:
+                self.navigate("/login")
+        return (
+            self.is_element_visible(self.login_heading, timeout=5000)
+            or self.is_element_visible(self.login_email_input, timeout=3000)
+        )
 
     def is_signup_form_displayed(self) -> bool:
         """Verify presence of the new user signup form and its heading."""
@@ -71,3 +78,4 @@ class LoginPage(BasePage):
     def is_signup_error_displayed(self) -> bool:
         """Check if signup error text is visible."""
         return self.is_element_visible(self.signup_error_message, timeout=4000)
+

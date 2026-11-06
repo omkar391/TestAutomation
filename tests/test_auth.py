@@ -2,7 +2,7 @@ import pytest
 from pages.home_page import HomePage
 from pages.login_page import LoginPage
 from pages.components.header_nav import HeaderNavComponent
-from test_data.models import TestUsersRepository, UserCredentials
+from test_data.models import TestUsersRepository, UserCredentials, get_test_users
 from utils.logger import log
 
 try:
@@ -13,19 +13,23 @@ except ImportError:
 
 @pytest.mark.auth
 class TestAuthentication:
-    """Enterprise Test Suite for User Authentication, Logout, and Registration Validations."""
+    """Enterprise Test Suite for User Authentication, Logout, and Validation Scenarios."""
 
     @pytest.mark.smoke
+    @pytest.mark.parametrize(
+        "valid_user",
+        get_test_users().valid_users,
+        ids=["user1_testadmin", "user2_test1user"],
+    )
     def test_valid_user_login(
         self,
         home_page: HomePage,
         login_page: LoginPage,
         header_nav: HeaderNavComponent,
-        users: TestUsersRepository,
+        valid_user: UserCredentials,
     ) -> None:
-        """Verify that a user with valid credentials can successfully log in and see their profile."""
-        log.step("Starting test: test_valid_user_login")
-        user = users.valid_user
+        """Verify that valid users can log in, and verify the green-boxed header items (Logout, Delete Account, Logged in as)."""
+        log.step(f"Starting test: test_valid_user_login for user '{valid_user.email}'")
 
         # 1. Navigate to Home Page and verify loaded
         home_page.open()
@@ -36,16 +40,20 @@ class TestAuthentication:
         assert login_page.is_login_form_displayed(), "Login form was expected to be displayed."
 
         # 3. Enter credentials and click Login
-        login_page.login(email=user.email, password=user.password)
+        login_page.login(email=valid_user.email, password=valid_user.password)
 
-        # 4. Verify user is logged in
-        assert header_nav.is_user_logged_in(), "User was expected to be authenticated."
-        if user.username:
-            assert header_nav.is_user_logged_in(expected_username=user.username), (
-                f"Expected logged in user '{user.username}', but found '{header_nav.get_logged_in_username()}'"
-            )
+        # 4. Assert highlighted green-box elements in navigation bar:
+        #    - 'Logout' link is visible
+        #    - 'Delete Account' link is visible
+        #    - 'Logged in as <username>' badge is visible
+        log.step(f"Verifying authenticated header navbar items for '{valid_user.username}'")
+        assert header_nav.is_logout_visible(), "Expected 'Logout' link to be visible in header."
+        assert header_nav.is_delete_account_visible(), "Expected 'Delete Account' link to be visible in header."
+        assert header_nav.is_user_logged_in(expected_username=valid_user.username), (
+            f"Expected user logged in as '{valid_user.username}', but found '{header_nav.get_logged_in_username()}'"
+        )
 
-        # 5. Clean up session
+        # 5. Clean up session by logging out
         header_nav.click_logout()
         assert login_page.is_login_form_displayed(), "User should be redirected to login page after logout."
 
@@ -53,7 +61,7 @@ class TestAuthentication:
     @pytest.mark.parametrize(
         "invalid_user",
         get_test_users().invalid_users,
-        ids=["nonexistent_email", "wrong_password"],
+        ids=["both_invalid", "valid_email_invalid_password", "invalid_email_valid_password"],
     )
     def test_invalid_login_shows_error(
         self,
@@ -61,24 +69,30 @@ class TestAuthentication:
         header_nav: HeaderNavComponent,
         invalid_user: UserCredentials,
     ) -> None:
-        """Verify that attempting to log in with invalid credentials triggers an error alert."""
-        log.step(f"Starting test: test_invalid_login_shows_error with email='{invalid_user.email}'")
+        """Verify login failure scenarios:
+        1. Both email and password invalid
+        2. Valid email with invalid password
+        3. Invalid email with valid password
+        """
+        log.step(f"Starting test: test_invalid_login_shows_error | Scenario: {invalid_user.scenario}")
 
         # 1. Navigate directly to login page
         login_page.open()
         assert login_page.is_login_form_displayed(), "Login form was expected to be visible."
 
-        # 2. Submit invalid credentials
+        # 2. Submit credentials for the scenario
         login_page.login(email=invalid_user.email, password=invalid_user.password)
 
-        # 3. Verify error message appears
+        # 3. Verify error alert 'Your email or password is incorrect!' is displayed
         assert login_page.is_login_error_displayed(), "Error message was expected upon invalid login."
         actual_error = login_page.get_login_error_message()
         assert invalid_user.expected_error in actual_error, (
             f"Expected error '{invalid_user.expected_error}', but got '{actual_error}'"
         )
 
-        # 4. Verify user is still unauthenticated
+        # 4. Verify user remains unauthenticated (Logout and Delete Account are NOT visible)
+        assert not header_nav.is_logout_visible(), "'Logout' should NOT be visible for unauthenticated user."
+        assert not header_nav.is_delete_account_visible(), "'Delete Account' should NOT be visible."
         assert not header_nav.is_user_logged_in(), "User should not be logged in after failed authentication."
 
     @pytest.mark.smoke
@@ -90,12 +104,12 @@ class TestAuthentication:
     ) -> None:
         """Verify that a logged-in user can successfully log out and return to unauthenticated state."""
         log.step("Starting test: test_user_logout_flow")
-        user = users.valid_user
+        user = users.valid_users[0]
 
         # 1. Navigate to login and authenticate
         login_page.open()
         login_page.login(email=user.email, password=user.password)
-        assert header_nav.is_user_logged_in(), "User was expected to be authenticated before logout."
+        assert header_nav.is_logout_visible(), "User was expected to be authenticated before logout."
 
         # 2. Click Logout in Header
         header_nav.click_logout()
@@ -121,7 +135,7 @@ class TestAuthentication:
 
         # 2. Submit existing email in the Signup section
         login_page.signup_initial(
-            name=existing_user.username or "TestUser",
+            name=existing_user.username or "Test admin",
             email=existing_user.email,
         )
 

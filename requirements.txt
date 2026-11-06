@@ -10,7 +10,9 @@ allure-pytest==2.13.5
 # Configuration & Data Validation
 pydantic==2.10.4
 pydantic-settings==2.7.0
+email-validator>=2.2.0
 python-dotenv==1.0.1
 
 # Observability & Logging
 loguru==0.7.3
+

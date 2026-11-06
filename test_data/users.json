@@ -1,31 +1,52 @@
 {
-  "valid_user": {
-    "email": "automation_enterprise_qa@gmail.com",
-    "password": "Password123!",
-    "username": "EnterpriseQA",
-    "is_valid": true,
-    "expected_error": null
-  },
-  "invalid_users": [
+  "valid_users": [
     {
-      "email": "nonexistent_qa_user_9999@test.com",
-      "password": "WrongPassword123!",
-      "username": null,
-      "is_valid": false,
-      "expected_error": "Your email or password is incorrect!"
+      "email": "testadmin@admin.com",
+      "password": "12345",
+      "username": "Test admin",
+      "is_valid": true,
+      "expected_error": null,
+      "scenario": "Valid user 1: testadmin@admin.com"
     },
     {
-      "email": "automation_enterprise_qa@gmail.com",
-      "password": "InvalidPasswordXYZ",
+      "email": "test1user@user.com",
+      "password": "12345",
+      "username": "test user 1",
+      "is_valid": true,
+      "expected_error": null,
+      "scenario": "Valid user 2: test1user@user.com"
+    }
+  ],
+  "invalid_users": [
+    {
+      "email": "both_invalid_qa_user@domain.com",
+      "password": "wrong_password_999",
       "username": null,
       "is_valid": false,
-      "expected_error": "Your email or password is incorrect!"
+      "expected_error": "Your email or password is incorrect!",
+      "scenario": "both email and password invalid"
+    },
+    {
+      "email": "testadmin@admin.com",
+      "password": "wrong_password_xyz",
+      "username": null,
+      "is_valid": false,
+      "expected_error": "Your email or password is incorrect!",
+      "scenario": "valid email and invalid password"
+    },
+    {
+      "email": "nonexistent_email_12345@domain.com",
+      "password": "12345",
+      "username": null,
+      "is_valid": false,
+      "expected_error": "Your email or password is incorrect!",
+      "scenario": "invalid email and valid password"
     }
   ],
   "existing_user_signup": {
-    "email": "automation_enterprise_qa@gmail.com",
-    "password": "Password123!",
-    "username": "EnterpriseQA",
+    "email": "testadmin@admin.com",
+    "password": "12345",
+    "username": "Test admin",
     "is_valid": false,
     "expected_error": "Email Address already exist!"
   }
