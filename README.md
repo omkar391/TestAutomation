@@ -205,3 +205,20 @@ The framework includes a production-grade CI workflow (`.github/workflows/e2e-te
 - **Artifact Upload**: Retains HTML reports, failure screenshots, video recordings, and trace archives for 14 days on every pull request and push to `main`.
 - **Manual Dispatch**: Supports running ad-hoc suites via GitHub Actions UI with custom pytest markers (`smoke`, `regression`, `auth`, `products`).
 
+### 💡 How the Pipeline Works (Short Summary for New Users)
+1. **Trigger**: Pushing code to `main` or opening a **Pull Request** automatically starts GitHub Actions in the cloud.
+2. **Setup**: GitHub spins up clean Linux machines, installs Python 3.11, and downloads browser binaries.
+3. **Run Tests**: Executes tests concurrently on both **Chromium** and **Firefox**.
+4. **Quality Gate**:
+   - If tests pass ➔ A green checkmark appears (**"All checks have passed"**), indicating it is safe to merge.
+   - If tests fail ➔ Merging is blocked to keep `main` stable.
+5. **Artifacts Upload (`if: always()`)**:
+   - **Passed or Failed, reports are always uploaded!**
+   - If tests pass, the HTML Report is uploaded.
+   - If tests fail, the HTML Report **plus** failure screenshots and Playwright traces are uploaded so you can inspect what went wrong.
+
+### 📥 How to View Artifacts & Reports on GitHub:
+1. Go to your **Pull Request** page or the **Actions** tab on GitHub.
+2. Click on the workflow run.
+3. Scroll down to the **Artifacts** section at the bottom.
+4. Click on `html-report-chromium` (or `html-report-firefox`) to download the `.zip`, unzip it, and open the HTML report.
