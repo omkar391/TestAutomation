@@ -18,6 +18,7 @@ class HeaderNavComponent:
         self.logout_link: Locator = page.locator("a[href='/logout']")
         self.delete_account_link: Locator = page.locator("a[href='/delete_account']")
         self.logged_in_as_text: Locator = page.locator("li:has-text('Logged in as')")
+        self.contact_us_link: Locator = page.locator("a[href='/contact_us']")
 
     def click_home(self) -> None:
         """Click 'Home' navigation link."""
@@ -33,6 +34,20 @@ class HeaderNavComponent:
         """Click 'Cart' navigation link."""
         log.click("Header -> Cart Link")
         self.cart_link.first.click()
+
+    def click_contact_us(self) -> None:
+        """Click 'Contact us' link in header navigation."""
+        log.click("Header -> Contact Us Link")
+        self.contact_us_link.first.click()
+        try:
+            self.page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
+        if "#google_vignette" in self.page.url:
+            clean_url = self.page.url.split("#")[0]
+            if "/contact_us" not in clean_url:
+                clean_url = f"{clean_url.rstrip('/')}/contact_us"
+            self.page.goto(clean_url, wait_until="domcontentloaded")
 
     def click_signup_login(self) -> None:
         """Click 'Signup / Login' navigation link."""
