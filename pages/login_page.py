@@ -45,6 +45,10 @@ class LoginPage(BasePage):
             or self.is_element_visible(self.login_email_input, timeout=3000)
         )
 
+    def is_loaded(self) -> bool:
+        """Verify login page is loaded."""
+        return self.is_login_form_displayed()
+
     def is_signup_form_displayed(self) -> bool:
         """Verify presence of the new user signup form and its heading."""
         return self.is_element_visible(self.signup_heading, timeout=5000)

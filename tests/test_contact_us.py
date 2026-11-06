@@ -23,6 +23,7 @@ class TestContactUs:
     Dialog Interaction, and Negative Validation."""
 
     @pytest.mark.smoke
+    @pytest.mark.regression
     @pytest.mark.parametrize(
         "filename",
         TARGET_FILES,

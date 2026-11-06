@@ -3,6 +3,7 @@ from playwright.sync_api import Locator, Page
 from pages.base_page import BasePage
 from pages.components.header_nav import HeaderNavComponent
 from pages.components.footer import FooterComponent
+from pages.components.cart_modal import CartModalComponent
 from utils.logger import log
 
 
@@ -13,6 +14,7 @@ class ProductsPage(BasePage):
         super().__init__(page)
         self.header: HeaderNavComponent = HeaderNavComponent(page)
         self.footer: FooterComponent = FooterComponent(page)
+        self.cart_modal_component: CartModalComponent = CartModalComponent(page)
 
         # Catalog & Search Locators
         self.all_products_heading: Locator = page.locator(".features_items h2.title").filter(
@@ -86,22 +88,23 @@ class ProductsPage(BasePage):
 
     def is_cart_modal_displayed(self) -> bool:
         """Verify the 'Added! Your product has been added to cart.' modal is visible."""
-        try:
-            self.cart_modal.wait_for(state="visible", timeout=6000)
-            return True
-        except Exception:
-            return False
+        return self.cart_modal_component.is_displayed()
+
+    def get_cart_modal_title(self) -> str:
+        """Return the heading text of the modal."""
+        return self.cart_modal_component.get_title()
+
+    def get_cart_modal_body(self) -> str:
+        """Return the body text of the modal."""
+        return self.cart_modal_component.get_body_text()
 
     def click_continue_shopping(self) -> None:
         """Dismiss the cart confirmation modal by clicking 'Continue Shopping'."""
-        log.click("Cart Modal -> Continue Shopping Button")
-        self.click_element(self.continue_shopping_button, "Continue Shopping Button")
-        self.cart_modal.wait_for(state="hidden", timeout=5000)
+        self.cart_modal_component.click_continue_shopping()
 
     def click_view_cart_from_modal(self) -> None:
         """Navigate to cart from the modal confirmation."""
-        log.click("Cart Modal -> View Cart Link")
-        self.click_element(self.view_cart_modal_link, "View Cart Modal Link")
+        self.cart_modal_component.click_view_cart()
 
     def view_product_details_by_index(self, index: int = 0) -> None:
         """Click 'View Product' link on a product card to open details view."""
@@ -109,6 +112,11 @@ class ProductsPage(BasePage):
         target_link = self.view_product_links.nth(index)
         self.scroll_into_view(target_link)
         self.click_element(target_link, f"View Product Link {index}")
+        try:
+            self.page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
+        self.dismiss_ad_overlay()
 
     def get_product_detail_info(self) -> dict:
         """Extract attributes from product details view."""
@@ -121,3 +129,12 @@ class ProductsPage(BasePage):
             "brand": self.get_element_text(self.product_detail_brand, "Detail Brand"),
         }
 
+    def set_product_quantity(self, quantity: int) -> None:
+        """Set the product quantity on product details view."""
+        log.step(f"Setting product quantity to {quantity}")
+        self.fill_text(self.product_quantity_input, str(quantity), "Product Quantity Input")
+
+    def click_add_to_cart_detail(self) -> None:
+        """Click 'Add to cart' button on product details view."""
+        log.click("Product Details -> Add to Cart Button")
+        self.click_element(self.add_to_cart_detail_button, "Add to Cart Detail Button")

@@ -122,11 +122,15 @@ class BasePage:
         loc.wait_for(state=state, timeout=t)  # type: ignore[arg-type]
         return loc
 
-    def wait_for_url_contains(self, expected_substring: str, timeout: Optional[int] = None) -> None:
+    def wait_for_url_contains(self, expected_substring: str, timeout: Optional[int] = None) -> bool:
         """Wait until current URL contains the expected substring."""
         t = timeout or self.default_timeout
         log.verify(f"Waiting for URL containing '{expected_substring}'")
-        self.page.wait_for_url(lambda u: expected_substring in u, timeout=t)
+        try:
+            self.page.wait_for_url(lambda u: expected_substring in u, timeout=t)
+            return True
+        except Exception:
+            return False
 
     def scroll_into_view(self, locator: Union[str, Locator]) -> None:
         """Scroll page until element is in the viewport."""
@@ -152,4 +156,8 @@ class BasePage:
         except Exception as e:
             log.debug(f"Vignette dismissal check finished with: {e}")
         return False
+
+    def dismiss_ad_overlay(self) -> bool:
+        """Alias for dismiss_vignette_if_present for backward compatibility."""
+        return self.dismiss_vignette_if_present()
 
